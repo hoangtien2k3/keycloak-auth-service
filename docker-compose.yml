@@ -1,0 +1,99 @@
+version: '3.9'
+
+services:
+  #postgresql:
+  postgres:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: postgres
+    build: ./docker/postgres
+    hostname: ${POSTGRES_HOSTNAME}
+    restart: always
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - ./docker/postgres/postgresql.conf.sample:/usr/share/postgresql/postgresql.conf.sample
+      - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
+      - postgres:/var/lib/postgresql/data
+    command: postgres -c 'max_connections=500'
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+    networks:
+      - auth-network
+
+  #pgadmin:
+  pgadmin:
+    image: dpage/pgadmin4:${PGADMIN_VERSION}
+    container_name: pgadmin
+    restart: unless-stopped
+    ports:
+      - "${PGADMIN_LISTEN_PORT}:80"
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL
+      - PGADMIN_DEFAULT_PASSWORD
+    networks:
+      - auth-network
+
+  #keycloak:
+  keycloak:
+    image: keycloak/keycloak:${KEYCLOAK_VERSION}
+    container_name: keycloak
+    command: start-dev
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - "${KEYCLOAK_PORT}:8080"
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      # KC_DB: h2
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      # KC_PROXY_ADDRESS_FORWARDING: true
+      KC_LOG_LEVEL: info
+      KC_METRICS_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # KC_HTTP_ENABLED: true
+      KC_HTTP_PORT: 8080
+      KC_HTTPS_PORT: 8443
+    volumes:
+      - ./docker/keycloak/themes/auth/theme:/opt/keycloak/themes
+      - keycloak:/opt/keycloak/data
+    networks:
+      - auth-network
+
+  #swagger-ui
+  swagger-ui:
+    image: swaggerapi/swagger-ui:${SWAGGER_VERSION}
+    container_name: swagger-ui
+    restart: unless-stopped
+    environment:
+      - BASE_URL=/swagger-ui
+      - URLS
+      - OAUTH_CLIENT_ID=swagger-ui
+      - OAUTH_USE_PKCE=true
+    networks:
+      - auth-network
+
+# networks:
+networks:
+  auth-network:
+    driver: bridge
+    name: auth-network
+    external: true
+
+# volumes:
+volumes:
+  postgres:
+  pgadmin:
+  keycloak:
+

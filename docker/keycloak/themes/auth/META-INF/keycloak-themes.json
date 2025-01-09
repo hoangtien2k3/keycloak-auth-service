@@ -1,0 +1,6 @@
+{
+  "themes": [{
+    "name" : "auth",
+    "types": [ "login" ]
+  }]
+}

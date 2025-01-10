@@ -156,17 +156,6 @@ keycloak:
   grantType: password
   host: localhost
 
-# minio server config
-minio:
-  bucket: ezbuy-bucket
-  enabled: true
-  baseUrl: http://localhost:9000
-  publicUrl: http://localhost:9000/hoangtien2k3-bucket
-  accessKey: 4DoaZ0KdzpXdDlVK104t
-  secretKey: nuRiQUIJNVygMOHhmtR4LT1etAa7F8PQOsRGP5oj
-  private:
-    bucket: ezbuy-private
-
 #config hash password
 hashing-password:
   public-key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4qGLPEGMdbDlYrc+Ud3w8Y2CobSLKAIfSBsX6bcV3bCxKZI8scW2gfr8ZMMXOxgQ0nXpIOQ0p0fb/hVHXMEnTu4Z5UEsF76eDfA80VPd96ujiZWyWYAeyIUelqPEZIWxM4MlBOPJDcCVDtwLKIoMbvVnXoHyjmOq93mHOoii24a2m0qt6jrvAYOvjNUijtofgjewYds/h74LfphDY/hNRq+4M6lI4RMZ4HiRn06P+GnvnwkxA3JL1bVRRqZ3gxB0VWiIj7I5likqnJfWnqn43mrMxfSdNI+6MpgR7L6djFOnjZiNP5bb6a3F17hwBeeLBTPs+akem/shlfoGYIbJOwIDAQAB

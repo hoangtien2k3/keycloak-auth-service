@@ -27,9 +27,9 @@ spring:
 
 #keycloak client config
 keycloak:
-  clientId: ezbuy-client
+  clientId: hoangtien2k3-client
   clientSecret: mI92QDfvi20tZgFtjpRAPWu8TR6eMHmw
-  realm: ezbuy-server
+  realm: hoangtien2k3-server
   serverUrl: http://localhost:8080
   grantType: password
   host: localhost

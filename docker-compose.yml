@@ -89,11 +89,9 @@ networks:
   auth-network:
     driver: bridge
     name: auth-network
-    external: true
 
 # volumes:
 volumes:
   postgres:
   pgadmin:
   keycloak:
-

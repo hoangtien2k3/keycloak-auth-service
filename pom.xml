@@ -30,17 +30,17 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git://github.com/hoangtien2k3/ezbuy.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com:hoangtien2k3/ezbuy.git</developerConnection>
-		<url>https://github.com/hoangtien2k3/ezbuy</url>
+		<connection>scm:git:git://github.com/hoangtien2k3/keycloak-auth-service.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com:hoangtien2k3/keycloak-auth-service.git</developerConnection>
+		<url>https://github.com/hoangtien2k3/keycloak-auth-service</url>
 	</scm>
 
 	<modules>
 		<module>auth-model</module>
 		<module>auth-service</module>
-		<module>notification-model</module>
-		<module>notification-service</module>
-		<module>notification-send</module>
+		<module>noti-model</module>
+		<module>noti-service</module>
+		<module>noti-send</module>
 	</modules>
 
 	<properties>

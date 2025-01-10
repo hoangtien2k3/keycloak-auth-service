@@ -1,6 +1,8 @@
 package com.hoangtien2k3.authservice.config;
 
 import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
@@ -24,7 +26,7 @@ public class SecurityConfiguration {
         corsConfig.addAllowedMethod(HttpMethod.PUT);
         corsConfig.addAllowedMethod(HttpMethod.DELETE);
         corsConfig.addAllowedMethod(HttpMethod.POST);
-        corsConfig.setAllowedOrigins(Arrays.asList(FRONTEND_LOCALHOST));
+        corsConfig.setAllowedOrigins(List.of(FRONTEND_LOCALHOST));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
         return source;

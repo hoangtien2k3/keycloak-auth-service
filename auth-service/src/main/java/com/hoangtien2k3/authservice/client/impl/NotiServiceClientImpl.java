@@ -2,7 +2,7 @@ package com.hoangtien2k3.authservice.client.impl;
 
 import com.hoangtien2k3.authmodel.constants.UrlPaths;
 import com.hoangtien2k3.authservice.client.NotiServiceClient;
-import com.hoangtien2k3.notificationmodel.dto.request.CreateNotificationDTO;
+import com.hoangtien2k3.notimodel.dto.request.CreateNotificationDTO;
 import com.reactify.client.BaseRestClient;
 import com.reactify.model.response.DataResponse;
 import com.reactify.util.SecurityUtils;

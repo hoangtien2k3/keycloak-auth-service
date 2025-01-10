@@ -1,6 +1,6 @@
 package com.hoangtien2k3.authservice.client;
 
-import com.hoangtien2k3.notificationmodel.dto.request.CreateNotificationDTO;
+import com.hoangtien2k3.notimodel.dto.request.CreateNotificationDTO;
 import com.reactify.model.response.DataResponse;
 import reactor.core.publisher.Mono;
 

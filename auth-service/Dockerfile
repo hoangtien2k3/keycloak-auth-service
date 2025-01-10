@@ -8,7 +8,7 @@ FROM  amazoncorretto:21.0.4
 LABEL com.hoangtien2k3.ecom.auth.version="1.0.0"
 LABEL version="1.0.0"
 LABEL description="auth service"
-LABEL author="Ezbuy Flatform"
+LABEL author="hoangtien2k3 Flatform"
 WORKDIR application
 
 #timezone +7

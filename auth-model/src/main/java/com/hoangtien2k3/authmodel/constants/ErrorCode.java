@@ -1,10 +1,6 @@
 package com.hoangtien2k3.authmodel.constants;
 
 public final class ErrorCode {
-    public static final class UserErrorCode {
-        public static final String QUERY_USER_ERROR = "UEC_01";
-        public static final String ACCOUNT_NOT_EXIST = "account_not_exist";
-    }
 
     public static final class OtpErrorCode {
         public static final String OTP_NOT_MATCH = "0TP_01";

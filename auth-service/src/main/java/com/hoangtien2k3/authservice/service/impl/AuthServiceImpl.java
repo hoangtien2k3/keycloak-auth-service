@@ -1,11 +1,10 @@
 package com.hoangtien2k3.authservice.service.impl;
 
-import static com.hoangtien2k3.authmodel.constants.AuthConstants.ClientName.EZBUY_CLIENT;
 import static com.reactify.constants.Constants.ActionUser.SYSTEM;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import com.hoangtien2k3.notificationmodel.dto.request.CreateNotificationDTO;
-import com.hoangtien2k3.notificationmodel.dto.request.NotiContentDTO;
+import com.hoangtien2k3.notimodel.dto.request.CreateNotificationDTO;
+import com.hoangtien2k3.notimodel.dto.request.NotiContentDTO;
 import com.hoangtien2k3.authmodel.constants.AuthConstants;
 import com.hoangtien2k3.authmodel.constants.ErrorCode;
 import com.hoangtien2k3.authmodel.dto.AccessToken;
@@ -13,7 +12,6 @@ import com.hoangtien2k3.authmodel.dto.KeycloakErrorResponse;
 import com.hoangtien2k3.authmodel.dto.request.*;
 import com.hoangtien2k3.authmodel.dto.response.GetActionLoginReportResponse;
 import com.hoangtien2k3.authmodel.dto.response.GetTwoWayPasswordResponse;
-import com.hoangtien2k3.authmodel.dto.response.IndividualDTO;
 import com.hoangtien2k3.authmodel.dto.response.Permission;
 import com.hoangtien2k3.authmodel.model.*;
 import com.hoangtien2k3.authservice.client.KeyCloakClient;
@@ -28,14 +26,13 @@ import com.hoangtien2k3.authservice.repository.OrganizationRepo;
 import com.hoangtien2k3.authservice.repository.OtpRepository;
 import com.hoangtien2k3.authservice.repository.UserCredentialRepo;
 import com.hoangtien2k3.authservice.service.AuthService;
-import com.hoangtien2k3.notificationmodel.dto.request.ReceiverDataDTO;
+import com.hoangtien2k3.notimodel.dto.request.ReceiverDataDTO;
 import com.reactify.config.CipherManager;
 import com.reactify.constants.CommonErrorCode;
 import com.reactify.constants.Constants;
 import com.reactify.constants.Regex;
 import com.reactify.exception.BusinessException;
 import com.reactify.model.TokenUser;
-import com.reactify.model.UserDTO;
 import com.reactify.model.response.DataResponse;
 import com.reactify.util.*;
 import jakarta.ws.rs.core.Response;
@@ -46,9 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.mina.util.Base64;
 import org.keycloak.admin.client.CreatedResponseUtil;
-import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -101,26 +96,6 @@ public class AuthServiceImpl implements AuthService {
     public Mono<Optional<AccessToken>> getToken(LoginRequest loginRequest) {
         return keyCloakClient
                 .getToken(loginRequest)
-                .onErrorResume(WebClientResponseException.class, this::handleKeyCloakError);
-    }
-
-    private Mono<Optional<AccessToken>> getTokenWithClientLogin(ClientLogin clientLogin, ServerWebExchange serverWebExchange) {
-        return keyCloakClient
-                .getToken(clientLogin)
-                .flatMap(accessToken -> {
-                    if (EZBUY_CLIENT.equals(clientLogin.getClientId()) && accessToken.isPresent()) {
-                        // get user info
-                        UserDTO userDTO = SecurityUtils.getUserByAccessToken(accessToken.get().getToken());
-                        if (userDTO != null) {
-                            AppUtils.runHiddenStream(saveLog(
-                                    userDTO.getId(),
-                                    userDTO.getUsername(),
-                                    ActionLogType.LOGIN,
-                                    serverWebExchange.getRequest()));
-                        }
-                    }
-                    return Mono.just(accessToken);
-                })
                 .onErrorResume(WebClientResponseException.class, this::handleKeyCloakError);
     }
 
@@ -254,104 +229,6 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return Mono.error(new BusinessException(CommonErrorCode.INTERNAL_SERVER_ERROR, errorDescription));
-    }
-
-    private void validateRepresentative(IndividualDTO individualDTO) {
-        if (DataUtil.isNullOrEmpty(individualDTO.getName())) {
-            throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "individual.representative.name.null");
-        }
-        if (DataUtil.isNullOrEmpty(individualDTO.getIdentifies())) {
-            throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "individual.representative.identify.null");
-        }
-    }
-
-    private String getPrimaryIdNo(List<TenantIdentify> identifies) {
-        return identifies.stream()
-                .filter(identify -> Constants.Activation.ACTIVE.equals(identify.getPrimaryIdentify()))
-                .findFirst()
-                .map(TenantIdentify::getIdNo)
-                .orElse(null);
-    }
-
-    private List<TenantIdentify> settingIdentifies(List<TenantIdentify> identifies) {
-        if (DataUtil.isNullOrEmpty(identifies)) {
-            throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "danh.sach.giay.to.khong.hop.le");
-        }
-
-        Map<String, Long> idTypeCounts = identifies.stream()
-                .peek(this::validateIdentifyOrg)
-                .collect(Collectors.groupingBy(TenantIdentify::getIdType, Collectors.counting()));
-
-        long mstCount = idTypeCounts.getOrDefault(AuthConstants.IDType.MST, 0L);
-        long gpkdCount = idTypeCounts.getOrDefault(AuthConstants.IDType.GPKD, 0L);
-
-        if (mstCount > 1) {
-            throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "identify.mst.over.size");
-        }
-        if (gpkdCount > 1) {
-            throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "identify.gpkd.over.size");
-        }
-        if (mstCount == 0 && gpkdCount == 0) {
-            throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "indentify.invalid");
-        }
-
-        String primaryIdentifyType = mstCount == 1 ? AuthConstants.IDType.MST : AuthConstants.IDType.GPKD;
-
-        return identifies.stream()
-                .peek(identify -> {
-                    identify.setPrimaryIdentify(
-                            identify.getIdType().equals(primaryIdentifyType)
-                                    ? Constants.Activation.ACTIVE
-                                    : Constants.Activation.INACTIVE);
-                    identify.setTrustStatus(Constants.Activation.ACTIVE);
-                })
-                .collect(Collectors.toList());
-    }
-
-    private void validateIdentifyOrg(TenantIdentify tenantIdentify) {
-        if (DataUtil.isNullOrEmpty(tenantIdentify.getIdType())) {
-            throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "identify.id.type.invalid");
-        }
-        if (DataUtil.isNullOrEmpty(tenantIdentify.getIdNo())) {
-            throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "identify.id.no.invalid");
-        }
-    }
-
-    private Map<String, String> validateAndSetPrimaryIdentifies(List<TenantIdentify> identifies) {
-        Map<String, String> identifyMap = new HashMap<>();
-        if (identifies == null || identifies.isEmpty()) {
-            throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "danh.sach.giay.to.khong.hop.le");
-        }
-        for (TenantIdentify identify : identifies) {
-            String idType = identify.getIdType();
-            String idNo = identify.getIdNo();
-            if (AuthConstants.IDType.MST.equalsIgnoreCase(idType)
-                    || AuthConstants.IDType.GPKD.equalsIgnoreCase(idType)) {
-                String existedValue = identifyMap.get(idType);
-                if (existedValue != null) {
-                    throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "khong.xac.dinh.duoc.so.giay.to");
-                }
-                identifyMap.put(idType, idNo);
-            } else {
-                throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "loai.giay.to.khong.duoc.ho.tro");
-            }
-        }
-        // validate just only: MST & GPKD
-        if (identifyMap.keySet().size() == 0) {
-            throw new BusinessException(CommonErrorCode.INVALID_PARAMS, "danh.sach.giay.to.khong.hop.le");
-        }
-        return identifyMap;
-    }
-
-    private CreateOrganizationRequest buildOrgDTO(CreateOrgAccount createOrgAccount) {
-        CreateOrganizationRequest createOrganizationRequest = new CreateOrganizationRequest();
-        createOrganizationRequest.setName(createOrgAccount.getName());
-        createOrganizationRequest.setEmail(createOrgAccount.getEmail());
-        createOrganizationRequest.setPhone(createOrgAccount.getPhone());
-        createOrganizationRequest.setFoundingDate(createOrgAccount.getFoundingDate());
-        createOrganizationRequest.setIdentifies(createOrgAccount.getIdentifies());
-        createOrganizationRequest.setRepresentative(createOrgAccount.getRepresentative());
-        return createOrganizationRequest;
     }
 
     @Override
@@ -493,10 +370,6 @@ public class AuthServiceImpl implements AuthService {
         return !kcProvider.getRealmResource().users().searchByEmail(email, true).isEmpty();
     }
 
-    private Integer countAccountByEmail(String email) {
-        return kcProvider.getRealmResource().users().searchByEmail(email, true).size();
-    }
-
     private boolean isExistedUsername(String username) {
         return !kcProvider.getRealmResource().users().search(username, true).isEmpty();
     }
@@ -525,7 +398,7 @@ public class AuthServiceImpl implements AuthService {
                 .get(Constants.RoleName.USER)
                 .toRepresentation();
         userResource.roles().realmLevel().add(Collections.singletonList(userRealmRole));
-        // get and add role 'user' for ezbuy-client
+        // get and add role 'user' for hoangtien2k3-client
         String clientIdOfHub = kcProvider
                 .getRealmResource()
                 .clients()
@@ -541,24 +414,6 @@ public class AuthServiceImpl implements AuthService {
                 .toRepresentation();
         userResource.roles().clientLevel(clientIdOfHub).add(Collections.singletonList(adminRoleWebclient));
         return userId;
-    }
-
-    public void checkAssignedRoles() {
-        Keycloak keycloak = keycloakProvider.getInstance();
-        String serviceAccountUserId = keycloak.realm(keycloakProvider.getRealm())
-                .clients()
-                .findByClientId(keycloakProvider.getClientID())
-                .getFirst()
-                .getClientId();
-
-        List<RoleRepresentation> assignedRealmRoles = keycloak.realm(keycloakProvider.getRealm())
-                .users()
-                .get(serviceAccountUserId)
-                .roles()
-                .realmLevel()
-                .listEffective();
-
-        assignedRealmRoles.forEach(role -> System.out.println("Assigned role: " + role.getName()));
     }
 
     @Override
@@ -745,7 +600,7 @@ public class AuthServiceImpl implements AuthService {
         // save password into table user_credential
         String hashedPassword = cipherManager.encrypt(password, publicKey);
         // bo sung danh dau khong can doi mat khau cho tk tao tu hub
-        int pwdChanged = AuthConstants.System.EZBUY.equals(system)
+        int pwdChanged = AuthConstants.System.hoangtien2k3.equals(system)
                 ? AuthConstants.STATUS_ACTIVE
                 : AuthConstants.STATUS_INACTIVE;
         UserCredential userCredential = UserCredential.builder()
@@ -898,31 +753,6 @@ public class AuthServiceImpl implements AuthService {
         });
     }
 
-    private String encodeBase64String(String input) {
-        if (DataUtil.isNullOrEmpty(input)) {
-            return EMPTY;
-        }
-        try {
-            Base64 base64 = new Base64();
-            // com.nimbusds.jose.util.Base64.encode(rawHmac);
-            return new String(base64.encode(input.getBytes()));
-        } catch (Exception e) {
-            return EMPTY;
-        }
-    }
-
-    private Mono<DataResponse> validateConfig(Optional<DataResponse> rs) {
-        if (rs.isEmpty()) {
-            return Mono.error(new BusinessException(CommonErrorCode.INVALID_PARAMS, "settingClient.not.found"));
-        }
-        DataResponse dataResponse = rs.get();
-        if (!DataUtil.isNullOrEmpty(dataResponse.getErrorCode())) {
-            return Mono.error(new BusinessException(CommonErrorCode.INVALID_PARAMS, "settingClient.not.found"));
-        }
-        return Mono.just(dataResponse);
-    }
-
-    // generate otp value random
     private String generateOtpValue() {
         Random random = new SecureRandom();
         return new DecimalFormat("000000").format(random.nextInt(999999));

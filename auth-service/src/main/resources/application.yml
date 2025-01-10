@@ -58,10 +58,10 @@ spring:
 client:
   #keycloak
   keycloak:
-    address: http://localhost:8080/realms/ezbuy-server/protocol/openid-connect
+    address: http://localhost:8080/realms/hoangtien2k3-server/protocol/openid-connect
     name: keycloak
     auth:
-      client-id: ezbuy-client
+      client-id: hoangtien2k3-client
       client-secret: mI92QDfvi20tZgFtjpRAPWu8TR6eMHmw
   #notification
   notification:
@@ -194,23 +194,23 @@ application:
 
 #keycloak client config
 keycloak:
-  clientId: ezbuy-client
+  clientId: hoangtien2k3-client
   clientSecret: mI92QDfvi20tZgFtjpRAPWu8TR6eMHmw
-  realm: ezbuy-server
+  realm: hoangtien2k3-server
   serverUrl: http://localhost:8080
   grantType: password
   host: localhost
 
 # minio server config
 minio:
-  bucket: ezbuy-bucket
+  bucket: hoangtien2k3-bucket
   enabled: true
   baseUrl: http://localhost:9000
-  publicUrl: http://localhost:9000/ezbuy-bucket
+  publicUrl: http://localhost:9000/hoangtien2k3-bucket
   accessKey: 4DoaZ0KdzpXdDlVK104t
   secretKey: nuRiQUIJNVygMOHhmtR4LT1etAa7F8PQOsRGP5oj
   private:
-    bucket: ezbuy-private
+    bucket: hoangtien2k3-private
 
 #config hash password
 hashing-password:

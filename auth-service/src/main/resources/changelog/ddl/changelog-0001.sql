@@ -1,8 +1,6 @@
 -- database changelog
--- Date: 2024-07-27
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
+-- user_otp
 CREATE TABLE user_otp
 (
     id        VARCHAR(36) PRIMARY KEY,
@@ -18,6 +16,7 @@ CREATE TABLE user_otp
     update_by VARCHAR(50)
 );
 
+-- individual
 CREATE TABLE individual
 (
     id                VARCHAR(36) PRIMARY KEY,
@@ -46,6 +45,7 @@ CREATE TABLE individual
     start_working_day TIMESTAMP
 );
 
+-- user_credential
 CREATE TABLE user_credential
 (
     id          VARCHAR(36) PRIMARY KEY,
@@ -60,6 +60,7 @@ CREATE TABLE user_credential
     pwd_changed INTEGER
 );
 
+-- action_log
 CREATE TABLE action_log
 (
     id         VARCHAR(36) PRIMARY KEY,
@@ -73,20 +74,7 @@ CREATE TABLE action_log
 CREATE INDEX idx_action_log_user_id ON action_log (user_id);
 CREATE INDEX idx_action_log_create_at ON action_log (create_at);
 
-CREATE TABLE individual_organization_permissions
-(
-    id              VARCHAR(36) PRIMARY KEY,
-    individual_id   VARCHAR(36)  NOT NULL,
-    organization_id VARCHAR(36)  NOT NULL,
-    client_id       VARCHAR(255) NOT NULL,
-    status          INTEGER      NOT NULL,
-    create_at       TIMESTAMP,
-    create_by       VARCHAR(100),
-    update_at       TIMESTAMP,
-    update_by       VARCHAR(100),
-    CONSTRAINT fk_individual FOREIGN KEY (individual_id) REFERENCES individual(id)
-);
-
+-- permission_policy
 CREATE TABLE permission_policy
 (
     id                                     VARCHAR(36) PRIMARY KEY,
@@ -107,51 +95,7 @@ CREATE TABLE permission_policy
     CONSTRAINT fk_individual_organization_permissions FOREIGN KEY (individual_organization_permissions_id) REFERENCES individual_organization_permissions(id)
 );
 
-CREATE TABLE user_profile
-(
-    id             VARCHAR(36) PRIMARY KEY,
-    image          VARCHAR(255),
-    company_name   VARCHAR(255),
-    representative VARCHAR(255),
-    phone          VARCHAR(50),
-    tax_code       VARCHAR(50),
-    tax_department VARCHAR(255),
-    founding_date  DATE,
-    business_type  VARCHAR(255),
-    province_code  VARCHAR(50),
-    district_code  VARCHAR(50),
-    precinct_code  VARCHAR(50),
-    street_block   VARCHAR(255),
-    create_at      TIMESTAMP,
-    create_by      VARCHAR(100),
-    update_at      TIMESTAMP,
-    update_by      VARCHAR(100),
-    user_id        VARCHAR(255)
-);
-
-CREATE TABLE option_set
-(
-    id          VARCHAR(36) NOT NULL PRIMARY KEY,
-    code        VARCHAR(50) NOT NULL,
-    name        VARCHAR(100) NOT NULL,
-    status      INT NOT NULL,
-    description VARCHAR(100) NOT NULL,
-    create_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL,
-    update_at   TIMESTAMP NULL,
-    create_by   VARCHAR(20) NULL,
-    update_by   VARCHAR(20) NULL
-);
-
-CREATE TABLE option_set_value
-(
-    id            VARCHAR(36) NOT NULL PRIMARY KEY,
-    option_set_id VARCHAR(36) NOT NULL,
-    value         VARCHAR(200) NOT NULL,
-    status        INT NOT NULL,
-    description   VARCHAR(100) NOT NULL,
-    CONSTRAINT fk_option_set FOREIGN KEY (option_set_id) REFERENCES option_set(id)
-);
-
+-- organization
 CREATE TABLE organization
 (
     id             VARCHAR(36) NOT NULL PRIMARY KEY,

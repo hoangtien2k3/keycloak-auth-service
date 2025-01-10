@@ -18,8 +18,8 @@ import org.springframework.scheduling.annotation.EnableScheduling
 )
 @ComponentScan(basePackages = ["com.hoangtien2k3", "com.reactify"])
 @EnableScheduling
-class notisendApplication
+class NotisendApplication
 
 fun main(args: Array<String>) {
-    runApplication<notisendApplication>(*args)
+    runApplication<NotisendApplication>(*args)
 }

@@ -1,8 +1,6 @@
 server:
   port: 8089
 logging:
-#  pattern:
-#    console: "%d{dd/MM/yy HH:mm:ss}|%X{traceId}|%m%n"
   level:
     root: INFO
     io.r2dbc.postgresql.QUERY: DEBUG
@@ -58,11 +56,11 @@ spring:
 client:
   #keycloak
   keycloak:
-    address: http://localhost:8080/realms/hoangtien2k3-server/protocol/openid-connect
+    address: ${keycloak.serverUrl}/realms/${keycloak.realm}/protocol/openid-connect
     name: keycloak
     auth:
-      client-id: hoangtien2k3-client
-      client-secret: mI92QDfvi20tZgFtjpRAPWu8TR6eMHmw
+      client-id: ${keycloak.clientId}
+      client-secret: ${keycloak.clientSecret}
   #notification
   notification:
     internal-oauth: true
@@ -133,84 +131,41 @@ application:
     - uri: /**
       methods:
         - OPTIONS
-    - uri: /v1/auth/get-all
-      methods:
-        - GET
     - uri: /v1/auth/confirm-create
-      methods:
-        - POST
-    - uri: /v1/user/contacts
-      methods:
-        - GET
-    - uri: /v1/auth/provider-code
-      methods:
-        - POST
-    - uri: /v1/auth/client-code
       methods:
         - POST
     - uri: /v1/auth/logout
       methods:
         - POST
-    - uri: /v1/identify/trusted-idNo-organization
-    - uri: /v1/sync-data/organization
-      methods:
-        - POST
-    - uri: /v1/sync-data/individual
-      methods:
-        - POST
-    - uri: /v1/sync-data/organization_unit
-      methods:
-        - POST
     - uri: /actuator/health
       methods:
         - POST
-    - uri: /v1/organization/unit/root-unit
-      methods:
-        - GET
-    - uri: /v1/organization/unit/code/**
-      methods:
-        - GET
-    - uri: /v1/individual-unit-position/**
-      methods:
-        - GET
-    - uri: /v1/organization/unit/sub/**
-      methods:
-        - GET
-    - uri: /v1/organization/organization-unit/get-business-type
-      methods:
-        - GET
-    - uri: /v1/individual/current
-      methods:
-        - GET
     - uri: /v1/permission-policy
       methods:
         - GET
-    - uri: /v1/auth/receive-sign-result
-      methods:
-        - POST
   data:
     sync-data:
       limit: 500
 
 #keycloak client config
 keycloak:
-  clientId: hoangtien2k3-client
+  clientId: ezbuy-client
   clientSecret: mI92QDfvi20tZgFtjpRAPWu8TR6eMHmw
-  realm: hoangtien2k3-server
+  realm: ezbuy-server
   serverUrl: http://localhost:8080
   grantType: password
   host: localhost
 
 # minio server config
 minio:
-  bucket: hoangtien2k3-bucket
+  bucket: ezbuy-bucket
   enabled: true
   baseUrl: http://localhost:9000
   publicUrl: http://localhost:9000/hoangtien2k3-bucket
   accessKey: 4DoaZ0KdzpXdDlVK104t
   secretKey: nuRiQUIJNVygMOHhmtR4LT1etAa7F8PQOsRGP5oj
   private:
-    bucket: hoangtien2k3-private
+    bucket: ezbuy-private
 
 #config hash password
 hashing-password:

@@ -28,7 +28,13 @@ git clone https://github.com/hoangtien2k3/keycloak-auth-service.git
            - grantType
            - host
     
-4. Run each service in turn
+4. Setup docker-compose
+```docker
+#Open terminal Windown and Macos
+docker-compose up -d
+```
+
+5. Run each service in turn
 ```yaml
   # Using Maven
   mvn spring-boot:run
